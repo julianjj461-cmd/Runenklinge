@@ -57,7 +57,8 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-acti
 .gold small{font-family:var(--f-body);font-size:13px;font-weight:700;color:var(--dim);letter-spacing:.06em;text-transform:uppercase}
 .gold.bump{animation:bump .16s ease-out}
 @keyframes bump{40%{transform:scale(1.07)}}
-.dps{font-size:12.5px;font-weight:700;color:var(--text);margin-top:3px;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dps{font-size:12.5px;font-weight:700;color:var(--text);margin-top:3px;opacity:.9;display:flex;flex-wrap:wrap;column-gap:10px;row-gap:0}
+.dps span{white-space:nowrap}.dps em{font-style:normal;color:var(--dim);font-weight:800;font-size:11px;letter-spacing:.05em;margin-right:3px}
 .bars{display:grid;gap:5px;margin-top:7px}
 .blab{display:flex;justify-content:space-between;font-size:11.5px;font-weight:700;color:var(--dim);margin-bottom:2px}
 .bar{height:6px;border-radius:3px;background:rgba(255,255,255,.1);overflow:hidden}
@@ -371,15 +372,15 @@ const TREE=[
   {id:'k10',x:-5,y:1, name:'Klingenkunde',         fx:{tap:0.5},              desc:'+50 % Tippschaden.',l:['k8']},
   {id:'k11',x:-6,y:0, name:'Klingentanz',          fx:{tapX:2},               desc:'Schlüsseltalent: Tippschaden ×2.',key:1,l:['k9','k10']},
   // Ausdauer und Auto-Angriff (oben)
-  {id:'a1', x:0, y:-1,name:'Kampfrhythmus',        fx:{speed:0.25},           desc:'+25 % Angriffstempo beim Auto-Angriff.',l:['root']},
-  {id:'a2', x:0, y:-2,name:'Muskelgedächtnis',     fx:{auto:0.5},             desc:'+50 % Schaden beim Auto-Angriff.',l:['a1']},
-  {id:'a3', x:0, y:-3,name:'Raserei',              fx:{skill:'frenzy'},       desc:'Fähigkeit: 15 Sekunden lang viermal so schneller Auto-Angriff.',big:1,l:['a2']},
-  {id:'a4', x:-1,y:-3,name:'Unruhe',               fx:{speed:0.25},           desc:'+25 % Angriffstempo.',l:['a3']},
+  {id:'a1', x:0, y:-1,name:'Kampfrhythmus',        fx:{speed:0.25},           desc:'+25 % DPS.',l:['root']},
+  {id:'a2', x:0, y:-2,name:'Muskelgedächtnis',     fx:{auto:0.5},             desc:'+50 % DPS.',l:['a1']},
+  {id:'a3', x:0, y:-3,name:'Raserei',              fx:{skill:'frenzy'},       desc:'Fähigkeit: 15 Sekunden lang vierfacher DPS.',big:1,l:['a2']},
+  {id:'a4', x:-1,y:-3,name:'Unruhe',               fx:{speed:0.25},           desc:'+25 % DPS.',l:['a3']},
   {id:'a5', x:1, y:-3,name:'Tiefer Atem',          fx:{energyMax:30},         desc:'+30 maximale Energie.',l:['a3']},
   {id:'a6', x:0, y:-4,name:'Zweiter Wind',         fx:{regen:0.3},            desc:'+30 % Energie-Regeneration.',l:['a4','a5']},
-  {id:'a7', x:-1,y:-4,name:'Kampfroutine',         fx:{auto:1},               desc:'+100 % Schaden beim Auto-Angriff.',l:['a6']},
+  {id:'a7', x:-1,y:-4,name:'Kampfroutine',         fx:{auto:1},               desc:'+100 % DPS.',l:['a6']},
   {id:'a8', x:1, y:-4,name:'Meditation',           fx:{regen:0.4},            desc:'+40 % Energie-Regeneration.',l:['a6']},
-  {id:'a9', x:0, y:-5,name:'Unermüdlich',          fx:{autoX:3},              desc:'Schlüsseltalent: Auto-Angriff ×3.',key:1,l:['a7','a8']},
+  {id:'a9', x:0, y:-5,name:'Unermüdlich',          fx:{autoX:3},              desc:'Schlüsseltalent: DPS ×3.',key:1,l:['a7','a8']},
   // Reichtum (unten)
   {id:'g1', x:0, y:1, name:'Taschen voll',         fx:{gold:0.2},             desc:'+20 % Gold.',l:['root']},
   {id:'g2', x:0, y:2, name:'Schatzsucher',         fx:{gold:0.2},             desc:'+20 % Gold.',l:['g1']},
@@ -415,7 +416,7 @@ TREE.forEach(n=>n.l.forEach(o=>{if(!TNODE[o].l.includes(n.id))TNODE[o].l.push(n.
 const SKILLS={
   strike:{name:'Machtschlag',  desc:'Zehnfacher Tippschaden.',          cost:15, cd:4000,  ic:'strike'},
   whirl: {name:'Klingenwirbel',desc:'Zehn schnelle Schläge.',           cost:30, cd:12000, ic:'whirl'},
-  frenzy:{name:'Raserei',      desc:'Auto-Angriff 15 s lang ×4 schneller.',cost:35,cd:40000,ic:'frenzy'},
+  frenzy:{name:'Raserei',      desc:'DPS 15 s lang ×4.',cost:35,cd:40000,ic:'frenzy'},
   greed: {name:'Goldrausch',   desc:'20 s lang doppeltes Gold.',        cost:40, cd:60000, ic:'greed'},
   slow:  {name:'Zeitsand',     desc:'+15 s gegen den aktuellen Boss.',  cost:50, cd:90000, ic:'slow'},
 };
@@ -429,7 +430,7 @@ const RELICS=[
   {id:'glass',  name:'Sanduhrglas',    desc:'+2 Sekunden für jeden Boss je Stufe.',    fx:{bossTime:2}, ic:'slow'},
   {id:'spark',  name:'Funkenstein',    desc:'+1 % Chance auf kritische Treffer je Stufe.',fx:{crit:0.01},ic:'tcrit'},
   {id:'fang',   name:'Drachenzahn',    desc:'Kritische Treffer +10 % stärker je Stufe.',fx:{critDmg:0.10},ic:'dragon'},
-  {id:'boots',  name:'Windschuh',      desc:'+6 % Angriffstempo je Stufe.',            fx:{speed:0.06}, ic:'tauto'},
+  {id:'boots',  name:'Windschuh',      desc:'+6 % DPS je Stufe.',            fx:{speed:0.06}, ic:'tauto'},
   {id:'drop',   name:'Mondtropfen',    desc:'+8 % Energie-Regeneration je Stufe.',     fx:{regen:0.08}, ic:'ten'},
   {id:'book',   name:'Altes Lehrbuch', desc:'+10 % Erfahrung je Stufe.',               fx:{xp:0.10},    ic:'txp'},
   {id:'bone',   name:'Ahnenknochen',   desc:'+6 % Seelen bei der Wiedergeburt je Stufe.',fx:{souls:0.06},ic:'crown'},
@@ -454,14 +455,14 @@ A('gold','Reich',n=>`Verdiene insgesamt ${n} Gold.`,[1e6,1e12,1e18,1e24,1e30],()
 /* ---------- Artefakte: mit Seelen gekauft, bleiben für immer ---------- */
 const IDLE_S=15,ART_GROW=1.6;
 const ARTS=[
-  {id:'rest',  name:'Stein der Ruhe',  k:'idleAuto',v:0.5,  base:1,ic:'moon',  d:v=>`Tippst du ${IDLE_S} s nicht, macht der Auto-Angriff +${v} % Schaden.`},
+  {id:'rest',  name:'Stein der Ruhe',  k:'idleAuto',v:0.5,  base:1,ic:'moon',  d:v=>`Tippst du ${IDLE_S} s nicht: +${v} % DPS.`},
   {id:'dream', name:'Traumkelch',      k:'idleGold',v:0.25, base:2,ic:'greed', d:v=>`Tippst du ${IDLE_S} s nicht, bekommst du +${v} % Gold.`},
   {id:'lamp',  name:'Nachtlaterne',    k:'offline', v:0.25, base:2,ic:'ten',   d:v=>`+${v} % Gold und Erfahrung, während du offline bist.`},
   {id:'fury',  name:'Zornkristall',    k:'tap',     v:0.3,  base:1,ic:'strike',d:v=>`+${v} % Tippschaden.`},
   {id:'scale', name:'Goldene Waage',   k:'gold',    v:0.15, base:2,ic:'tgold', d:v=>`+${v} % Gold.`},
   {id:'eye',   name:'Drachenauge',     k:'critDmg', v:0.2,  base:2,ic:'dragon',d:v=>`Kritische Treffer +${v} % stärker.`},
   {id:'dagger',name:'Schattendolch',   k:'crit',    v:0.01, base:3,ic:'tcrit', d:v=>`+${v} % Chance auf kritische Treffer.`,max:25},
-  {id:'storm', name:'Sturmfeder',      k:'speed',   v:0.05, base:3,ic:'tauto', d:v=>`+${v} % Angriffstempo.`,max:20},
+  {id:'storm', name:'Sturmfeder',      k:'speed',   v:0.05, base:3,ic:'tauto', d:v=>`+${v} % DPS.`},
   {id:'hour',  name:'Zeitstein',       k:'bossTime',v:2,    base:3,ic:'slow',  d:v=>`+${v} Sekunden für jeden Boss.`,max:15,abs:1},
   {id:'jar',   name:'Seelenkrug',      k:'souls',   v:0.05, base:4,ic:'crown', d:v=>`+${v} % Seelen bei der Wiedergeburt.`},
 ];
@@ -550,7 +551,7 @@ function enterZone(z){S.zone=Math.max(1,z);S.kills=0;if(S.zone>S.maxRun)S.maxRun
 function addXp(x){S.xp+=x;while(S.xp>=xpNeed(S.level)){S.xp-=xpNeed(S.level);S.level++;ev('level',S.level)}}
 function damage(d,src,crit){
   if(S.walk>0||S.mhp<=0)return false;
-  S.mhp-=d;ev('hit',d,src,!!crit);
+  S.mhp-=d;if(src!=='dps')ev('hit',d,src,!!crit);
   if(S.mhp<=0){
     const boss=isBossZone(S.zone),chest=S.chest,g=goldFor(S.zone)*(chest?8:1),x=xpFor(S.zone)*(chest?2:1);
     S.gold+=g;S.goldRun+=g;S.goldAll+=g;S.killsAll++;if(boss)S.bossKills++;if(chest)S.chests=(S.chests||0)+1;addXp(x);ev('kill',g,x,boss,chest);
@@ -580,8 +581,9 @@ function econTick(dt){
   S.energy=Math.min(energyMax(),S.energy+energyRegen()*dt);
   if(S.walk>0){S.walk-=dt;return}
   if(S.whirlN>0){S.whirlT-=dt;while(S.whirlN>0&&S.whirlT<=0){S.whirlT+=0.12;S.whirlN--;const c=rollCrit();damage(tapDamage()*1.5*(c?critMult():1),'whirl',c);if(S.walk>0){S.whirlN=0;break}}}
-  S.autoT+=dt*autoSpeed();
-  while(S.autoT>=1){S.autoT-=1;const c=rollCrit();damage(autoDamage()*(c?critMult():1),'auto',c);if(S.walk>0){S.autoT=0;break}}
+  // Dauerschaden: jedes gekaufte Level erhöht den Schaden pro Sekunde. Anzeige gesammelt alle 0,5 s.
+  if(S.walk<=0&&S.mhp>0){const d=autoDps()*dt;S.dpsAcc=(S.dpsAcc||0)+d;S.autoT+=dt;damage(d,'dps',false);
+    if(S.walk>0){S.dpsAcc=0;S.autoT=0}else if(S.autoT>=0.5){ev('hit',S.dpsAcc,'auto',false);S.dpsAcc=0;S.autoT=0}}
   if(isBossZone(S.zone)&&S.walk<=0&&S.mhp>0){S.bossLeft-=dt;if(S.bossLeft<=0){S.advance=false;ev('bossFail',S.zone);enterZone(S.zone-1)}}
 }
 function econBuyGear(id){
@@ -1126,7 +1128,7 @@ function draw(t,raw){
   if(art('idleAuto')>0||art('idleGold')>0){const hp=heroPos(),u=unit(),idle=isIdle();
     if(idle){additive(()=>{cx.globalAlpha=0.28+0.1*Math.sin(t*0.003);drawGlow('#6fa8ff',hp.x,hp.y-u*0.6,u*1.15);cx.globalAlpha=1});
       cx.font=`800 ${Math.round(Math.max(11,u*0.1))}px "Alegreya Sans", system-ui, sans-serif`;cx.textAlign='center';cx.textBaseline='bottom';cx.lineWidth=3.5;cx.strokeStyle='rgba(10,6,14,.75)';
-      const txt='RUHE'+(art('idleAuto')>0?` · AUTO +${fmt(art('idleAuto')*100)} %`:'')+(art('idleGold')>0?` · GOLD +${fmt(art('idleGold')*100)} %`:'');
+      const txt='RUHE'+(art('idleAuto')>0?` · DPS +${fmt(art('idleAuto')*100)} %`:'')+(art('idleGold')>0?` · GOLD +${fmt(art('idleGold')*100)} %`:'');
       cx.textBaseline='top';const ly=hp.y+Math.max(10,u*0.12);cx.strokeText(txt,hp.x,ly);cx.fillStyle='#a9c8ff';cx.fillText(txt,hp.x,ly);
       additive(()=>{for(let i=0;i<6;i++){const k=((t*0.0004+i/6)%1),px=hp.x+Math.sin(i*2.4+t*0.001)*u*0.35;cx.globalAlpha=Math.sin(k*Math.PI)*0.8;cx.fillStyle='#9cc4ff';cx.beginPath();cx.arc(px,hp.y-u*0.1-k*u*1.1,u*0.018*(1-k*0.5),0,TAU);cx.fill()}cx.globalAlpha=1})}}
   if(beam>0){const bw=u*0.9*beam,g=cx.createLinearGradient(hp.x-bw,0,hp.x+bw,0);g.addColorStop(0,'rgba(182,140,255,0)');g.addColorStop(0.5,`rgba(220,200,255,${0.55*beam})`);g.addColorStop(1,'rgba(182,140,255,0)');
@@ -1228,7 +1230,7 @@ function loadPreset(){const R=[],add=(s,g)=>{if(stoneOn(s)&&gemOn(g)&&R.length<S
 const TG=88,TOX=6.6,TOY=6.4,TW=13.2,TH=12.8;
 function shortLabel(n){const f=n.fx,p=v=>Math.round(v*100)+' %';if(n.id==='root')return 'Ursprung';if(n.big||n.key)return n.name;
   if(f.tap)return 'Tipp +'+p(f.tap);if(f.dmg)return 'Schaden +'+p(f.dmg);if(f.crit)return 'Krit +'+p(f.crit);if(f.critDmg)return 'Kritwucht +'+p(f.critDmg);
-  if(f.speed)return 'Tempo +'+p(f.speed);if(f.auto)return 'Auto +'+p(f.auto);if(f.energyMax)return 'Energie +'+f.energyMax;if(f.regen)return 'Regen. +'+p(f.regen);
+  if(f.speed)return 'DPS +'+p(f.speed);if(f.auto)return 'DPS +'+p(f.auto);if(f.energyMax)return 'Energie +'+f.energyMax;if(f.regen)return 'Regen. +'+p(f.regen);
   if(f.gold)return 'Gold +'+p(f.gold);if(f.rebate)return 'Rabatt '+p(f.rebate);if(f.xp)return 'EP +'+p(f.xp);if(f.bossTime)return 'Boss +'+f.bossTime+' s';
   if(f.stone||f.gem)return n.name.split(': ')[1]||n.name;if(f.slots)return '+'+f.slots+' Platz';if(f.tick)return 'Takt ×2';return n.name}
 function centerTree(sc){const r=TNODE.root;sc.scrollTo({left:(r.x+TOX)*TG-sc.clientWidth/2,top:(r.y+TOY)*TG-sc.clientHeight/2})}
@@ -1278,7 +1280,7 @@ let goldRate=0;
 function setBuy(b,cost,label){const ok=S.gold>=cost;b.disabled=!ok;b.style.setProperty('--p',clamp(S.gold/cost*100,0,100)+'%');b.querySelector('[data-c]').textContent=fmt(cost);
   b.querySelector('[data-q]').textContent=ok?label:(goldRate>0?'in '+eta((cost-S.gold)/goldRate):label);const row=b.closest('.row');if(row)row.classList.toggle('ready',ok);return ok}
 function artSection(){
-  if(!S.rebirths&&!S.souls)return `<div class="h3">ARTEFAKTE</div><div class="card"><p>Nach deiner ersten Wiedergeburt kannst du hier mit Seelen Artefakte kaufen. Sie geben starke Boni, zum Beispiel mehr Auto-Schaden, wenn du eine Weile nicht tippst.</p></div>`;
+  if(!S.rebirths&&!S.souls)return `<div class="h3">ARTEFAKTE</div><div class="card"><p>Nach deiner ersten Wiedergeburt kannst du hier mit Seelen Artefakte kaufen. Sie geben starke Boni, zum Beispiel mehr DPS, wenn du eine Weile nicht tippst.</p></div>`;
   return `<div class="h3">ARTEFAKTE · <span class="soulchip">${fmt(S.souls)} SEELEN</span></div>
   <div class="arts">${ARTS.map(a=>{const l=artLvl(a.id),mx=artMaxed(a);
     return `<div class="art${l?'':' zero'}"><div class="rico">${svg(a.ic)}${l?`<span class="cnt">${l}</span>`:''}</div>
@@ -1287,7 +1289,7 @@ function artSection(){
   <p class="note">Artefakte bleiben für immer, auch nach jeder Wiedergeburt. Aber jede ausgegebene Seele gibt keine +10 % Schaden mehr. Meist lohnt es sich trotzdem, denn ein Artefakt bringt deutlich mehr als die paar Seelen. Jede Stufe kostet etwas mehr als die letzte.</p>`}
 let selNode='k1',treeScroll=null,rebirthArmed=0,wipeArmed=0;
 const panels={
-  gear:{title:'Ausrüstung',sub:'Gold rein, Schaden raus. Jedes Level stärkt Tippen und Auto-Angriff.',
+  gear:{title:'Ausrüstung',sub:'Gold rein, Schaden raus. Jedes Level gibt dauerhaft mehr DPS und Tippschaden.',
     key:()=>S.mode+'|'+visibleGear().length,
     tools:()=>`<div class="seg" role="group" aria-label="Kaufmenge">${[1,10,25,'max','next'].map(m=>`<button type="button" data-mode="${m}" aria-pressed="${S.mode===m}">${m==='max'?'Max':m==='next'?'Bis Meilenstein':'×'+m}</button>`).join('')}</div>`,
     body(){const vis=visibleGear(),nx=GEAR[vis.length];
@@ -1302,7 +1304,7 @@ const panels={
       else{const k=buyCount(g);setBuy(b,costOf(g,k),'kaufen ×'+k)}
       const c=el.querySelector(`[data-own="${g.id}"]`);c.textContent=o;c.hidden=!o;
       const bn=Math.round((bonus25(g.id)-1)*100),be=el.querySelector(`[data-bon="${g.id}"]`);be.textContent=bn?`+${bn} %`:'';be.hidden=!bn;
-      const per=g.dmg*gearMult(g.id)*dmgMult();el.querySelector(`[data-meta="${g.id}"]`).textContent=`+${fmt(per)} Schaden pro Level`+(o?` · gesamt ${fmt(per*o)}`:'');
+      const bd=baseDmg(),r=bd>0?autoDps()/bd:autoDps(),per=g.dmg*gearMult(g.id)*r;el.querySelector(`[data-meta="${g.id}"]`).textContent=`+${fmt(per)} DPS pro Level`+(o?` · gesamt ${fmt(per*o)} DPS`:'');
       const pg=gatesOf(g.id)?gateLevel(gatesOf(g.id)-1):0;
       el.querySelector(`[data-msl="${g.id}"]`).textContent=gt?`Meilenstein bereit (Level ${ng})`:`Level ${o} / ${ng}`;el.querySelector(`[data-msb="${g.id}"]`).style.width=clamp((o-pg)/(ng-pg)*100,0,100)+'%'}}
   },
@@ -1378,7 +1380,7 @@ const panels={
       <div class="h3">TAGESBONUS</div><div class="card"><div class="pips">${Array.from({length:7},(_,i)=>`<i class="${i<S.daily.streak?'on':''}"></i>`).join('')}</div><p>Tag ${S.daily.streak} von 7. Komm morgen wieder, dann wird der Bonus größer.</p></div>
       <div class="h3">EINSTELLUNGEN</div><div class="card"><div class="kv"><span>Ton und Vibration</span><span><button class="ghost" type="button" data-sound>${S.sound?'An':'Aus'}</button></span></div>
         <div><button class="ghost ${wa?'armed':''}" type="button" data-wipe>${wa?'Wirklich alles löschen? Nochmal tippen':'Spielstand löschen'}</button></div></div>
-      <p class="note">Der Spielstand wird in diesem Browser gespeichert. Offline kämpft Mara per Auto-Angriff bis zu 8 Stunden weiter.</p>`},
+      <p class="note">Der Spielstand wird in diesem Browser gespeichert. Offline macht Mara mit ihrem DPS bis zu 8 Stunden weiter.</p>`},
     update(el){const q=k=>el.querySelector(`[data-k="${k}"]`),g=soulsFor(S.maxRun);q('max').textContent=S.maxRun;q('gain').textContent=fmt(g);q('maxAll').textContent=S.maxZone;
       q('goldAll').textContent=fmt(S.goldAll);q('kills').textContent=fmt(S.killsAll);q('boss').textContent=fmt(S.bossKills);q('crit').textContent=fmt(S.crits);
       q('bar').style.width=Math.min(100,S.maxRun/REBIRTH_ZONE*100)+'%';
@@ -1445,7 +1447,7 @@ $('#zPrev').innerHTML=svg('prev');$('#zNext').innerHTML=svg('next');$('#zAdv').i
 /* ================= HUD ================= */
 let skKey='';
 function updateUI(){
-  $('#dps').textContent=`Tipp ${fmt(tapDamage())} · Auto ${fmt(autoDps())}/s`+(boostOn()?' · Gold ×2':'');
+  {const h=`<span><em>TIPP</em>${fmt(tapDamage())}</span><span><em>DPS</em>${fmt(autoDps())}</span>`+(boostOn()?'<span><em>GOLD</em>×2</span>':'');const el=$('#dps');if(el._h!==h){el._h=h;el.innerHTML=h}}
   $('#lvlTxt').textContent=`Level ${S.level}`+(pointsFree()>0?` · +${pointsFree()}`:'');
   $('#xpTxt').textContent=`${Math.floor(S.xp/xpNeed(S.level)*100)} %`;$('#xpBar').style.width=clamp(S.xp/xpNeed(S.level)*100,0,100)+'%';
   $('#enTxt').textContent=`${Math.floor(S.energy)} / ${energyMax()}`;$('#enBar').style.width=clamp(S.energy/energyMax()*100,0,100)+'%';
@@ -1496,7 +1498,7 @@ function start(data){
       const away=Math.min((Date.now()-S.last)/1000,8*3600);
       if(away>60){const r=econOffline(away);ECON.flushEv();const h=Math.floor(away/3600),m=Math.floor(away%3600/60);dispGold=S.gold*0.6;
         if(r.gold>0)modal(`<p class="eyebrow">Willkommen zurück</p><div class="who"><div class="av">G</div><p>„Du warst weg, ich hab weitergehauen. Gern geschehen.“</p></div>
-          <div class="reward">+${fmt(r.gold)} Gold</div><p>${fmt(r.kills)} Monster in ${h?h+' Std. ':''}${m} Min. per Auto-Angriff besiegt${away>=8*3600?' (maximal 8 Stunden)':''}.</p>`,
+          <div class="reward">+${fmt(r.gold)} Gold</div><p>${fmt(r.kills)} Monster in ${h?h+' Std. ':''}${m} Min. besiegt${away>=8*3600?' (maximal 8 Stunden)':''}.</p>`,
           [{label:'Einsammeln',fn:()=>giveGold(0)},{label:'Verdoppeln',sub:'Werbung ansehen',cls:'mana',fn:()=>{watchAd(()=>giveGold(r.gold));return 'keep'}}])}
       const today=dayKey(0);
       if(S.daily.day!==today){const streak=S.daily.day===dayKey(-1)?Math.min(7,S.daily.streak+1):1;S.daily={day:today,streak};const b=nice(goldFor(Math.max(1,S.zone))*15*streak);
